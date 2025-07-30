@@ -1,3 +1,4 @@
+![QFundToolkit](assets/logo.png)
 # 📊 QFundToolkit
 
 **Quantitative Fund Management Toolkit** — A modular and extensible toolkit for building, testing, and analyzing quantitative investment strategies.  
