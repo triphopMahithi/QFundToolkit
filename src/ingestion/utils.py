@@ -16,7 +16,7 @@ def save_to_pickle(df, period="1y", interval="1d", cache_dir="cache"):
     os.makedirs(cache_dir, exist_ok=True)
     filename = generate_cache_filename(filetype="pkl", period=period, interval=interval, cache_dir=cache_dir)
     df.to_pickle(filename)
-    print(f"✅ Cached to Pickle file: {filename}")
+    print(f"Cached to Pickle file: {filename}")
     return filename
 
 def save_to_csv(df, period="1y", interval="1d", cache_dir="cache"):
@@ -25,7 +25,7 @@ def save_to_csv(df, period="1y", interval="1d", cache_dir="cache"):
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = ['_'.join(filter(None, col)).strip() for col in df.columns.values]
     df.to_csv(filename, index=True)
-    print(f"✅ Cached to CSV file: {filename}")
+    print(f"Cached to CSV file: {filename}")
     return filename
 
 def load_from_pickle(filepath):
@@ -50,4 +50,4 @@ def save_to_mongo(df, mongo_uri, db_name, collection_name):
         collection.update_one(query, {"$set": record}, upsert=True)
 
     client.close()
-    print("✅ Cached to MongoDB")
+    print("Cached to MongoDB")
