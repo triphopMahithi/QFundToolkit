@@ -1,7 +1,6 @@
 
-<img src="assets/img/logo.svg" 
+<img src="assets/img/social_perview.png" 
      alt="QFundToolkit Logo" 
-     width="240" 
      height="auto" />
 # 📊 QFundToolkit
 
