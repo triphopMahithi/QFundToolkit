@@ -65,7 +65,7 @@ Designed for personal fund managers, family portfolios, or quants who want full 
 
 ## 🛠️ Getting Started
 ```bash
-git clone https://github.com/your-username/QFundToolkit.git
+git clone https://github.com/triphopMahithi/QFundToolkit.git
 cd QFundToolkit
 pip install -r requirements.txt
 python app.py  # or streamlit run dashboard.py
