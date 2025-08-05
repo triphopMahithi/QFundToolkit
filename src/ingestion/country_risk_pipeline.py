@@ -5,6 +5,7 @@ import pandas as pd
 from typing import List, Optional, Union
 from datetime import datetime
 from dotenv import load_dotenv
+from pathlib import Path
 
 class CountryRiskScraper:
     def __init__(self, url: str):
@@ -98,9 +99,10 @@ class CountryRiskScraper:
         print(f"File saved successfully: {filename}")
 
 
+
 if __name__ == "__main__":
     # Example usage
-    load_dotenv()
+    load_dotenv(r"YOUR_PATH\QFundToolkit\.env")
     scraper = CountryRiskScraper(
         url=os.getenv("ctryprem")
     )
