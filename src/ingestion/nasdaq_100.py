@@ -60,6 +60,42 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 # ==============================
 # FUNCTIONS
 # ==============================
+
+def safe_download(symbols: List[str], period: str, interval: str, batch_size: int = 25) -> pd.DataFrame:
+    """Try to download all symbols at once, fallback to batch mode if failed."""
+    try:
+        logger.info("Attempting single-call download for all tickers...")
+        df = yf.download(" ".join(symbols), period=period, interval=interval, group_by='ticker', threads=True, progress=False)
+        if isinstance(df, pd.DataFrame) and not df.empty:
+            logger.info("Single-call download successful.")
+            return df
+        else:
+            logger.warning("Single-call returned empty DataFrame, switching to batch mode.")
+    except Exception as e:
+        logger.error(f"Single-call download failed: {e}. Switching to batch mode...")
+
+    # --- Fallback: Batch mode ---
+    all_data = []
+    for i in range(0, len(symbols), batch_size):
+        batch = symbols[i:i+batch_size]
+        logger.info(f"Downloading batch {i//batch_size+1}: {batch}")
+        try:
+            data = yf.download(" ".join(batch), period=period, interval=interval, group_by='ticker', threads=True, progress=False)
+            if isinstance(data, pd.DataFrame) and not data.empty:
+                all_data.append(data)
+            else:
+                logger.warning(f"No data for batch {batch}")
+        except Exception as e:
+            logger.error(f"Failed batch {batch}: {e}")
+        time.sleep(1)  # avoid rate-limit
+
+    if not all_data:
+        logger.error("No data retrieved for any symbol.")
+        return pd.DataFrame()
+
+    return pd.concat(all_data, axis=1)
+
+    
 def get_nasdaq_100_list() -> List[str]:
     """Fetch NASDAQ-100 ticker symbols from the specified URL.
 
@@ -136,27 +172,25 @@ def fetch_multi_stock_data(symbols: List[str]) -> pd.DataFrame:
     return combined_df
 
 
+# TODO: INCREMENTAL FUNCTION
+
 # ==============================
 # MAIN PROCESS
 # ==============================
 def main():
-    """Main process for downloading NASDAQ-100 data."""
     symbols = get_nasdaq_100_list()
     if not symbols:
         logger.error("No symbols found. Exiting.")
         return
 
-    df = fetch_multi_stock_data(symbols)
+    df = safe_download(symbols, PERIOD, INTERVAL, batch_size=25)
     if df.empty:
         logger.warning("No data to save. Exiting.")
         return
 
     save_to_pickle(df, PERIOD, INTERVAL, CACHE_DIR)
     save_to_csv(df, PERIOD, INTERVAL, CACHE_DIR)
-    # save_to_mongo(df, MONGO_URI, DB_NAME, COLLECTION_NAME)
-
     logger.info("Completed fetching and saving NASDAQ-100 stock data.")
-
 
 if __name__ == "__main__":
     main()
