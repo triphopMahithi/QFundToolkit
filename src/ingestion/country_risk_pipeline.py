@@ -102,7 +102,7 @@ class CountryRiskScraper:
 
 if __name__ == "__main__":
     # Example usage
-    load_dotenv(r"YOUR_PATH\QFundToolkit\.env")
+    load_dotenv(r"YOU_PATH\QFundToolkit\.env")
     scraper = CountryRiskScraper(
         url=os.getenv("ctryprem")
     )
