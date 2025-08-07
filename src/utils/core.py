@@ -3,10 +3,6 @@ import numpy as np
 import yfinance as yf
 from typing import Union
 
-import numpy as np
-import pandas as pd
-from typing import Union
-
 def mean_return(asset_returns: Union[np.ndarray, pd.Series, pd.DataFrame],
                 weights: Union[np.ndarray, list, None] = None,
                 round_digits: int = 6) -> float:
