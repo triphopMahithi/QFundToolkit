@@ -36,7 +36,7 @@ def solve_risk_parity(cov):
     if not result.success:
         print("Optimization failed:", result.message)
         return x0
-    print("Objective value at solution:", risk_parity_objective(result.x, cov))
+    print("Objective value at solution:", round(risk_parity_objective(result.x, cov), 6))
 
     return result.x
 
@@ -50,15 +50,29 @@ def get_stock_returns(tickers, period_days=365):
     returns = data.pct_change().dropna()
     return returns
 
+# TODO: explain any input-parameter
+# TODO: check-main of input identity and condition (sum w = 1)
+# TODO: verbose (logging ,etc)
+# TODO: google style
+
+def get_risk_parity_weights(tickers, returns):
+    cov = returns.cov().values
+    w = solve_risk_parity(cov)
+    rc = risk_contributions(w, cov)
+    rc_pct = rc / np.sum(rc)
+    weights = {}
+    for i, (ticker, weight, r) in enumerate(zip(tickers, w, rc_pct)):
+        print(f"{ticker:>6}: Weight = {weight:.4f}, RC % = {r:.4f}")
+        weights[ticker] = weight
+    
+    return weights
+
+
+
 # === MAIN ===
 
-tickers = ["MSTR","DDOG", "JEPQ", "SGOV", "NVDA", "QBTS","BTC-USD"]  
+tickers = ["MSTR","DDOG","NVDA", "JEPQ", "SGOV", "QBTS","QQQ"]  
 returns = get_stock_returns(tickers, period_days=365)
-cov = returns.cov().values  
 
-weights = solve_risk_parity(cov)
-rc = risk_contributions(weights, cov)
-rc_pct = rc / np.sum(rc)
-
-for i, (ticker, w, r) in enumerate(zip(tickers, weights, rc_pct)):
-    print(f"{ticker:>6}: Weight = {w:.4f}, RC % = {r:.4f}")
+risk_parity = get_risk_parity_weights(tickers, returns)
+print(risk_parity)
