@@ -55,7 +55,7 @@ def get_stock_returns(tickers, period_days=365):
 # TODO: verbose (logging ,etc)
 # TODO: google style
 
-def get_risk_parity_weights(tickers, returns):
+def risk_parity_weights(tickers, returns):
     cov = returns.cov().values
     w = solve_risk_parity(cov)
     rc = risk_contributions(w, cov)
@@ -74,5 +74,5 @@ def get_risk_parity_weights(tickers, returns):
 tickers = ["MSTR","DDOG","NVDA", "JEPQ", "SGOV", "QBTS","QQQ"]  
 returns = get_stock_returns(tickers, period_days=365)
 
-risk_parity = get_risk_parity_weights(tickers, returns)
+risk_parity = risk_parity_weights(tickers, returns)
 print(risk_parity)
