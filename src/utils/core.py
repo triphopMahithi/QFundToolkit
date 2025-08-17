@@ -1,7 +1,58 @@
+from __future__ import annotations
 import pandas as pd
 import numpy as np
 import yfinance as yf
-from typing import Union
+from datetime import datetime, timedelta
+from typing import Sequence, Union, Literal
+
+def get_stock_returns(
+    tickers: Union[str, Sequence[str]],
+    *,
+    period: Literal["3mo", "6mo", "1y", "2y"] = "6mo",
+    interval: Literal["1d", "1wk", "1mo"] = "1d",
+    auto_adjust: bool = True,
+    align: Literal["intersect", "strict"] = "intersect",
+    progress: bool = False,
+    return_type: Literal["price", "return"] = "return",   # 👈 เพิ่มตัวเลือก
+) -> pd.DataFrame:
+
+    data = yf.download(
+        tickers=tickers,
+        period=period,
+        interval=interval,
+        auto_adjust=auto_adjust,
+        progress=progress,
+    )["Close"]
+
+    if isinstance(data, pd.Series):
+        data = data.to_frame(name=tickers if isinstance(tickers, str) else tickers[0])
+
+    if getattr(data.index, "tz", None) is not None:
+        data.index = data.index.tz_localize(None)
+
+    if data.shape[1] > 1:
+        valid_masks = {col: data[col].notna() for col in data.columns}
+        date_sets = {col: set(data.index[mask]) for col, mask in valid_masks.items()}
+
+        if align == "strict":
+            first = next(iter(date_sets.values()))
+            mismatched = [c for c, s in date_sets.items() if s != first]
+            if mismatched:
+                raise ValueError(
+                    f"Dates are not perfectly aligned across tickers. Mismatch at: {mismatched}"
+                )
+            aligned_close = data.loc[sorted(first)]
+        else:  # "intersect"
+            common = set.intersection(*date_sets.values())
+            aligned_close = data.loc[sorted(common)]
+    else:
+        aligned_close = data.dropna()
+
+    # คืนราคาหรือผลตอบแทน
+    if return_type == "price":
+        return aligned_close
+    else:  # "return"
+        return aligned_close.pct_change().dropna(how="any")
 
 def mean_return(asset_returns: Union[np.ndarray, pd.Series, pd.DataFrame],
                 weights: Union[np.ndarray, list, None] = None,
@@ -144,7 +195,7 @@ def maxDD(portfolio_values: Union[np.ndarray, pd.Series],
 
     Example:
         >>> import yfinance as yf
-        >>> data = yf.download("NVDA", period="1y")['Close']
+        >>> data = yf.download("NVDA", period="1y")['Close'].squeeze()
         >>> mdd = maxDD(data)
         >>> dd_series = maxDD(data, return_series=True)
     """
